@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 The Guava Authors
+ * Copyright (C) 2016 The Guava Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,16 @@
  * limitations under the License.
  */
 
-package com.google.common.collect;
-
-import com.google.common.annotations.GwtIncompatible;
-
-import java.util.SortedSet;
+package com.google.common.graph;
 
 /**
- * Superinterface of {@link SortedMultiset} to introduce a bridge method for
- * {@code elementSet()}, to ensure binary compatibility with older Guava versions
- * that specified {@code elementSet()} to return {@code SortedSet}.
- *
- * @author Louis Wasserman
+ * A utility class to hold various constants used by the Guava Graph library.
  */
-@GwtIncompatible
-interface SortedMultisetBridge<E> extends Multiset<E> {
-  @Override
-  SortedSet<E> elementSet();
+// TODO(user): Decide what else to put here (error message strings, node/edge map sizes, etc.)
+final class GraphConstants {
+
+  private GraphConstants() {}
+
+  // TODO(user): Enable users to specify the expected (in/out?) degree of nodes.
+  static final int EXPECTED_DEGREE = 11;
 }

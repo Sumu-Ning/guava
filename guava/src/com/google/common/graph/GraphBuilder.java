@@ -18,6 +18,7 @@ package com.google.common.graph;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import com.google.common.annotations.Beta;
 import com.google.common.base.Optional;
 
 import java.util.Comparator;
@@ -37,6 +38,7 @@ import java.util.Comparator;
  */
 // TODO(b/24620028): Add support for sorted nodes/edges. Use the same pattern as CacheBuilder
 // to narrow the generic type when Comparators are provided.
+@Beta
 public final class GraphBuilder<N> {
   final boolean directed;
   boolean allowsSelfLoops = true;
@@ -103,9 +105,9 @@ public final class GraphBuilder<N> {
   }
 
   /**
-   * Returns an empty mutable {@link Graph} with the properties of this {@link GraphBuilder}.
+   * Returns an empty {@link MutableGraph} with the properties of this {@link GraphBuilder}.
    */
   public <N1 extends N> MutableGraph<N1> build() {
-    return new ConfigurableGraph<N1>(this);
+    return new ConfigurableMutableGraph<N1>(this);
   }
 }

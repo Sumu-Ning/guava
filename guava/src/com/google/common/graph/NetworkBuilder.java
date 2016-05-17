@@ -18,6 +18,7 @@ package com.google.common.graph;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import com.google.common.annotations.Beta;
 import com.google.common.base.Optional;
 
 import java.util.Comparator;
@@ -38,6 +39,7 @@ import java.util.Comparator;
 // TODO(b/24620028): Add support for sorted nodes/edges. Use the same pattern as CacheBuilder
 // to narrow the generic <N, E> type when Comparators are provided.
 // TODO(user): try creating an abstract superclass that this and GraphBuilder could derive from.
+@Beta
 public final class NetworkBuilder<N, E> {
   final boolean directed;
   boolean allowsParallelEdges = false;
@@ -128,9 +130,9 @@ public final class NetworkBuilder<N, E> {
   }
 
   /**
-   * Returns an empty mutable {@link Network} with the properties of this {@link NetworkBuilder}.
+   * Returns an empty {@link MutableNetwork} with the properties of this {@link NetworkBuilder}.
    */
   public <N1 extends N, E1 extends E> MutableNetwork<N1, E1> build() {
-    return new ConfigurableNetwork<N1, E1>(this);
+    return new ConfigurableMutableNetwork<N1, E1>(this);
   }
 }

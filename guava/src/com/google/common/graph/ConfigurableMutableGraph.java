@@ -22,11 +22,9 @@ import static com.google.common.graph.GraphErrorMessageUtils.SELF_LOOPS_NOT_ALLO
 
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 
-import java.util.Map;
-
 /**
- * Configurable implementation of {@link Graph} that supports both directed and undirected graphs.
- * Instances of this class should be constructed with {@link GraphBuilder}.
+ * Configurable implementation of {@link MutableGraph} that supports both directed and undirected
+ * graphs. Instances of this class should be constructed with {@link GraphBuilder}.
  *
  * <p>Time complexities for mutation methods are all O(1) except for {@code removeNode(N node)},
  * which is in O(d_node) where d_node is the degree of {@code node}.
@@ -37,28 +35,21 @@ import java.util.Map;
  * @param <N> Node parameter type
  */
 // TODO(b/24620028): Enable this class to support sorted nodes/edges.
-class ConfigurableGraph<N> extends AbstractConfigurableGraph<N> implements MutableGraph<N> {
+final class ConfigurableMutableGraph<N>
+    extends AbstractConfigurableGraph<N> implements MutableGraph<N> {
+
   /**
    * Constructs a mutable graph with the properties specified in {@code builder}.
    */
-  ConfigurableGraph(GraphBuilder<? super N> builder) {
+  ConfigurableMutableGraph(GraphBuilder<? super N> builder) {
     super(builder);
-  }
-
-  /**
-   * Constructs a graph with the properties specified in {@code builder}, initialized with
-   * the given node maps. May be used for either mutable or immutable graphs.
-   */
-  ConfigurableGraph(GraphBuilder<? super N> builder,
-      Map<N, NodeAdjacencies<N>> nodeConnections) {
-    super(builder, nodeConnections);
   }
 
   @Override
   @CanIgnoreReturnValue
   public boolean addNode(N node) {
     checkNotNull(node, "node");
-    if (nodes().contains(node)) {
+    if (containsNode(node)) {
       return false;
     }
     nodeConnections.put(node, newNodeConnections());
@@ -80,8 +71,8 @@ class ConfigurableGraph<N> extends AbstractConfigurableGraph<N> implements Mutab
     checkNotNull(node1, "node1");
     checkNotNull(node2, "node2");
     checkArgument(allowsSelfLoops() || !node1.equals(node2), SELF_LOOPS_NOT_ALLOWED, node1);
-    boolean containsN1 = nodes().contains(node1);
-    boolean containsN2 = nodes().contains(node2);
+    boolean containsN1 = containsNode(node1);
+    boolean containsN2 = containsNode(node2);
     // TODO(user): does not support parallel edges
     if (containsN1 && containsN2 && nodeConnections.get(node1).successors().contains(node2)) {
       return false;
@@ -103,16 +94,17 @@ class ConfigurableGraph<N> extends AbstractConfigurableGraph<N> implements Mutab
   @CanIgnoreReturnValue
   public boolean removeNode(Object node) {
     checkNotNull(node, "node");
-    if (!nodes().contains(node)) {
+    NodeAdjacencies<N> connections = nodeConnections.get(node);
+    if (connections == null) {
       return false;
     }
-    for (N successor : nodeConnections.get(node).successors()) {
+    for (N successor : connections.successors()) {
       if (!node.equals(successor)) {
         // don't remove the successor if it's the input node (=> CME); will be removed below
         nodeConnections.get(successor).removePredecessor(node);
       }
     }
-    for (N predecessor : nodeConnections.get(node).predecessors()) {
+    for (N predecessor : connections.predecessors()) {
       nodeConnections.get(predecessor).removeSuccessor(node);
     }
     nodeConnections.remove(node);
@@ -125,13 +117,13 @@ class ConfigurableGraph<N> extends AbstractConfigurableGraph<N> implements Mutab
     checkNotNull(node1, "node1");
     checkNotNull(node2, "node2");
     NodeAdjacencies<N> connectionsN1 = nodeConnections.get(node1);
-    NodeAdjacencies<N> connectionsN2 = nodeConnections.get(node2);
-    if (connectionsN1 == null || connectionsN2 == null) {
+    if (connectionsN1 == null || !connectionsN1.successors().contains(node2)) {
       return false;
     }
-    boolean result = connectionsN1.removeSuccessor(node2);
+    NodeAdjacencies<N> connectionsN2 = nodeConnections.get(node2);
+    connectionsN1.removeSuccessor(node2);
     connectionsN2.removePredecessor(node1);
-    return result;
+    return true;
   }
 
   private NodeAdjacencies<N> newNodeConnections() {
